@@ -1,12 +1,14 @@
 package model
 
 import (
+	"chatroom/utils"
 	"database/sql"
 )
 
-func CreateUser(username, password string) error {
-	insertSql := "insert into users(username, password) values(?, ?)"
-	_, err := db.Exec(insertSql, username, password)
+func CreateUser(username, password, email string) error {
+	createTime := utils.GetCurrentTime()
+	insertSql := "insert into users(username, password, email, create_time) values(?, ?, ?, ?)"
+	_, err := db.Exec(insertSql, username, password, email, createTime)
 	if err != nil {
 		return err
 	}
