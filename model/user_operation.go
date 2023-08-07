@@ -7,8 +7,13 @@ import (
 
 func CreateUser(username, password, email string) error {
 	createTime := utils.GetCurrentTime()
-	insertSql := "insert into users(username, password, email, create_time) values(?, ?, ?, ?)"
-	_, err := db.Exec(insertSql, username, password, email, createTime)
+	salt, generate_err := utils.GenerateSalt()
+	if generate_err != nil {
+		return generate_err
+	}
+	passwordHash := utils.HashPassword(password, salt)
+	insertSql := "insert into users(username, password, email, create_time, salt) values(?, ?, ?, ?, ?)"
+	_, err := db.Exec(insertSql, username, passwordHash, email, createTime, salt)
 	if err != nil {
 		return err
 	}
@@ -36,8 +41,18 @@ func FindUserExist(username string) bool {
 func DeleteUser(username string) error {
 	deletesql := "delete from users where username = ?"
 	_, err := db.Exec(deletesql, username)
-	if err == nil {
+	if err != nil {
 		return err
 	}
 	return nil
+}
+
+func QueryPassword(username string) (string, string, error) {
+	querySql := "select password, salt from users where username = ?"
+	var password, salt string
+	err := db.QueryRow(querySql, username).Scan(&password, &salt)
+	if err != nil {
+		return "", "", err
+	}
+	return password, salt, err
 }
