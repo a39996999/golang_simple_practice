@@ -10,5 +10,5 @@ func init() {
 }
 func main() {
 	server := router.InitRouter()
-	server.Run(":8080")
+	server.Run("0.0.0.0:8080")
 }
