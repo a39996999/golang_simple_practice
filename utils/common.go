@@ -16,5 +16,5 @@ func VerifyEmailFormat(email string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	return checkEmailValidate, err
+	return checkEmailValidate, nil
 }

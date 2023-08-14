@@ -7,7 +7,7 @@ import (
 	"fmt"
 )
 
-func GenerateSalt() (string, error) {
+func GenerateToken() (string, error) {
 	saltByte := make([]byte, 16)
 	_, err := rand.Read(saltByte)
 	if err != nil {

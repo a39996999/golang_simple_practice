@@ -1,38 +1,45 @@
 package model
 
 import (
+	"chatroom/model/migrate"
 	"database/sql"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 
 	_ "github.com/go-sql-driver/mysql"
+	"gopkg.in/yaml.v3"
 )
 
-type conf struct {
-	Host     string
-	Database string
-	Username string
-	Password string
+type config struct {
+	Sql databaseConfig `yaml:"mysql"`
+}
+
+type databaseConfig struct {
+	Host     string `yaml:"host"`
+	Database string `yaml:"database"`
+	Username string `yaml:"username"`
+	Password string `yaml:"password"`
 }
 
 var db *sql.DB
 
 func Init() {
-	file, err := ioutil.ReadFile("model/conf.json")
-
+	configFile, err := os.Open("config.yml")
 	if err != nil {
 		panic(err)
 	}
-	conf := conf{}
-	err = json.Unmarshal(file, &conf)
-	connection_str := fmt.Sprintf("%s:%s@tcp(%s:3306)/%s", conf.Username, conf.Password, conf.Host, conf.Database)
+	defer configFile.Close()
+	config := config{}
+	decoder := yaml.NewDecoder(configFile)
+	err = decoder.Decode(&config)
+	if err != nil {
+		panic(err)
+	}
+	connection_str := fmt.Sprintf("%s:%s@tcp(%s:3306)/%s", config.Sql.Username, config.Sql.Password, config.Sql.Host, config.Sql.Database)
 	db, err = sql.Open("mysql", connection_str)
-
 	if err != nil {
 		panic(err)
 	}
-	if err := db.Ping(); err != nil {
-		panic(err)
-	}
+	migrate.CreateUserTable(db)
+	migrate.CreateMailTable(db)
 }

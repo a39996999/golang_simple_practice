@@ -19,7 +19,7 @@ func CreateUser(c *gin.Context) {
 	if err := c.ShouldBindJSON(&User); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"code":  "10001",
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 	}
@@ -30,20 +30,14 @@ func CreateUser(c *gin.Context) {
 		})
 		return
 	}
-	checkUserExist := model.FindUserExist(User.Name)
 	checkEmailValidate, emailError := utils.VerifyEmailFormat(User.Email)
-	if checkUserExist {
-		c.JSON(http.StatusOK, gin.H{
-			"code":  "10001",
-			"error": "User is alreay exist",
-		})
-	} else if emailError != nil {
-		c.JSON(http.StatusOK, gin.H{
+	if emailError != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
 			"code":  "10001",
 			"error": emailError,
 		})
 	} else if checkEmailValidate == false {
-		c.JSON(http.StatusOK, gin.H{
+		c.JSON(http.StatusBadRequest, gin.H{
 			"code":  "10001",
 			"error": "Input wrong email format",
 		})
@@ -52,7 +46,7 @@ func CreateUser(c *gin.Context) {
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"code":  "10001",
-				"error": err,
+				"error": err.Error(),
 			})
 		} else {
 			c.JSON(http.StatusOK, gin.H{
@@ -68,7 +62,7 @@ func UpdateUserPassword(c *gin.Context) {
 	if err := c.ShouldBindJSON(&User); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"code":  "10001",
-			"error": err,
+			"error": err.Error(),
 		})
 	}
 	if User.Name == "" || User.Passowrd == "" {
@@ -77,23 +71,16 @@ func UpdateUserPassword(c *gin.Context) {
 			"error": "invalid input",
 		})
 	}
-	checkUserExist := model.FindUserExist(User.Name)
-	if checkUserExist {
-		err := model.UpdateUserPassword(User.Name, User.Passowrd)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"code":  "10001",
-				"error": err,
-			})
-		}
-		c.JSON(http.StatusOK, gin.H{
-			"code":   "0",
-			"status": "update user password sucessfully",
+	err := model.UpdateUserPassword(User.Name, User.Passowrd)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":  "10001",
+			"error": err.Error(),
 		})
 	} else {
 		c.JSON(http.StatusOK, gin.H{
-			"code":  "0",
-			"error": "User is not exist",
+			"code":   "0",
+			"status": "update user password sucessfully",
 		})
 	}
 }
@@ -103,7 +90,7 @@ func DeleteUser(c *gin.Context) {
 	if err := c.ShouldBindJSON(&User); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"code":  "10001",
-			"error": err,
+			"error": err.Error(),
 		})
 	}
 	if User.Name == "" {
@@ -112,25 +99,17 @@ func DeleteUser(c *gin.Context) {
 			"error": "invalid input",
 		})
 	}
-	checkUserExist := model.FindUserExist(User.Name)
-	if checkUserExist {
-		err := model.DeleteUser(User.Name)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"code":  "10001",
-				"error": err,
-			})
-		}
-		c.JSON(http.StatusOK, gin.H{
-			"code":   "0",
-			"status": "delete user sucessfully",
-		})
-	} else {
-		c.JSON(http.StatusOK, gin.H{
+	err := model.DeleteUser(User.Name)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
 			"code":  "10001",
-			"error": "User is not exist",
+			"error": err.Error(),
 		})
 	}
+	c.JSON(http.StatusOK, gin.H{
+		"code":   "0",
+		"status": "delete user sucessfully",
+	})
 }
 
 func UserLogin(c *gin.Context) {
@@ -138,7 +117,7 @@ func UserLogin(c *gin.Context) {
 	if err := c.ShouldBindJSON(&User); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"code":  "10001",
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 	}
@@ -146,7 +125,7 @@ func UserLogin(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code":  "10001",
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 	}
