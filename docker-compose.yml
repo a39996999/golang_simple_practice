@@ -4,9 +4,9 @@ services:
     container_name: gosqldb
     image: mysql:8.1.0
     ports:
-      - 3306:3306
+      - ${database_port}:${database_port}
     environment:
-      - MYSQL_ROOT_PASSWORD=123456
+      - MYSQL_ROOT_PASSWORD=${database_password}
       - MYSQL_DATABASE=chating
     networks:
       - ctnetwork 
@@ -16,13 +16,13 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8080:8080"
+      - "${server_port}:${server_port}"
     volumes:
       - .:/chatroom
     depends_on:
       - db
     networks:
       - ctnetwork 
-    command: bash -c "dockerize -wait tcp://gosqldb:3306 -timeout 300s -wait-retry-interval 5s && go run main.go"
+    command: bash -c "dockerize -wait tcp://gosqldb:${database_port} -timeout 300s -wait-retry-interval 5s && go run main.go"
 networks:
   ctnetwork:

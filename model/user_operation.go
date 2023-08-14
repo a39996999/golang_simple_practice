@@ -6,23 +6,31 @@ import (
 	"errors"
 )
 
+type User struct {
+	Id       int
+	Name     string
+	Password string
+	Email    string
+	Token    string
+}
+
 func CreateUser(username, password, email string) error {
 	searchsql := "select count(*) from users where username = ? or email = ?"
 	var count int
 	err := db.QueryRow(searchsql, username, email).Scan(&count)
 	if err != nil {
-		return nil
+		return err
 	} else if count != 0 {
 		return errors.New("username or email already exist")
 	}
 	createTime := utils.GetCurrentTime()
-	salt, generate_err := utils.GenerateToken()
+	token, generate_err := utils.GenerateToken()
 	if generate_err != nil {
 		return generate_err
 	}
-	passwordHash := utils.HashPassword(password, salt)
+	passwordHash := utils.HashPassword(password, token)
 	insertSql := "insert into users(username, password, email, create_time, token) values(?, ?, ?, ?, ?)"
-	_, err = db.Exec(insertSql, username, passwordHash, email, createTime, salt)
+	_, err = db.Exec(insertSql, username, passwordHash, email, createTime, token)
 	if err != nil {
 		return err
 	}
@@ -36,12 +44,12 @@ func UpdateUserPassword(username, password string) error {
 		return errors.New("user is not exist")
 	}
 	updatesql := "update users set password = ?, token = ? where username = ?"
-	salt, generate_err := utils.GenerateToken()
+	token, generate_err := utils.GenerateToken()
 	if generate_err != nil {
 		return generate_err
 	}
-	passwordHash := utils.HashPassword(password, salt)
-	_, err = db.Exec(updatesql, passwordHash, salt, username)
+	passwordHash := utils.HashPassword(password, token)
+	_, err = db.Exec(updatesql, passwordHash, token, username)
 	if err != nil {
 		return err
 	}
@@ -62,14 +70,16 @@ func DeleteUser(username string) error {
 	return nil
 }
 
-func QueryPassword(username string) (string, string, error) {
-	querySql := "select password, token from users where username = ?"
-	var password, salt string
-	err := db.QueryRow(querySql, username).Scan(&password, &salt)
-	if err != nil {
-		return "", "", err
+func QueryUserInfo(username string) (User, error) {
+	querySql := "select id, email, password, token from users where username = ?"
+	user := User{}
+	err := db.QueryRow(querySql, username).Scan(&user.Id, &user.Email, &user.Password, &user.Token)
+	if err == sql.ErrNoRows {
+		return user, errors.New("user is not exist")
+	} else if err != nil {
+		return user, err
 	}
-	return password, salt, err
+	return user, nil
 }
 
 func RecordSendMail(email, token string) error {
@@ -101,8 +111,9 @@ func VerifyMail(token string) error {
 	updateSql := `update mail
 		inner join users on mail.user_id = users.id
 		set users.is_verify_email = 1, mail.is_verify = 1
+		where mail.verification_token = ?
 	`
-	_, err = db.Exec(updateSql)
+	_, err = db.Exec(updateSql, token)
 	if err != nil {
 		return err
 	}

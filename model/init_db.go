@@ -7,16 +7,12 @@ import (
 	"os"
 
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/joho/godotenv"
 )
 
 var db *sql.DB
 
-func Init() {
-	err := godotenv.Load()
-	if err != nil {
-		panic(err)
-	}
+func InitDB() {
+	var err error
 	connection_str := fmt.Sprintf("%s:%s@tcp(%s:3306)/%s", os.Getenv("mysql_username"), os.Getenv("mysql_password"), os.Getenv("mysql_host"), os.Getenv("mysql_database"))
 	db, err = sql.Open("mysql", connection_str)
 	if err != nil {

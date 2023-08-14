@@ -3,12 +3,19 @@ package main
 import (
 	"chatroom/model"
 	"chatroom/router"
+	"os"
+
+	"github.com/joho/godotenv"
 )
 
 func init() {
-	model.Init()
+	err := godotenv.Load()
+	if err != nil {
+		panic(err)
+	}
+	model.InitDB()
 }
 func main() {
 	server := router.InitRouter()
-	server.Run("0.0.0.0:8080")
+	server.Run(os.Getenv("server_host") + ":" + os.Getenv("server_port"))
 }
