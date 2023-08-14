@@ -7,10 +7,13 @@ import (
 )
 
 func CreateUser(username, password, email string) error {
-	searchsql := "select username, email from users where username = ? or email = ?"
-	err := db.QueryRow(searchsql, username, email).Scan(username, email)
-	if err != sql.ErrNoRows {
-		return err
+	searchsql := "select count(*) from users where username = ? or email = ?"
+	var count int
+	err := db.QueryRow(searchsql, username, email).Scan(&count)
+	if err != nil {
+		return nil
+	} else if count != 0 {
+		return errors.New("username or email already exist")
 	}
 	createTime := utils.GetCurrentTime()
 	salt, generate_err := utils.GenerateToken()

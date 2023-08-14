@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"net/smtp"
+	"os"
 	"regexp"
 	"time"
 )
@@ -17,4 +19,9 @@ func VerifyEmailFormat(email string) (bool, error) {
 		return false, err
 	}
 	return checkEmailValidate, nil
+}
+
+func SendMail(to string, message []byte) error {
+	auth := smtp.PlainAuth("", os.Getenv("smtp_from"), os.Getenv("smtp_password"), os.Getenv("smtp_server"))
+	return smtp.SendMail(os.Getenv("smtp_server")+":"+os.Getenv("smtp_port"), auth, os.Getenv("smtp_from"), []string{to}, message)
 }
