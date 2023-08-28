@@ -17,13 +17,13 @@ func SendMailToken(c *gin.Context) {
 	email := EmailRequest{}
 	if err := c.ShouldBindJSON(&email); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
+			"message": err.Error(),
 		})
 		return
 	}
 	if email.Email == "" {
-		c.JSON(http.StatusOK, gin.H{
-			"error": "invalid email",
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "invalid email",
 		})
 		return
 	}
@@ -32,14 +32,19 @@ func SendMailToken(c *gin.Context) {
 	verifyUrl := "http://" + host_ip + "/v1/user/verifymail/" + mailToken
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+			"message": err.Error(),
 		})
 		return
 	}
-	err = model.RecordSendMail(email.Email, mailToken)
+	isVerifyEmail, err := model.RecordSendMail(email.Email, mailToken)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+			"message": err.Error(),
+		})
+		return
+	} else if isVerifyEmail != false {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Email was verify",
 		})
 		return
 	}
@@ -49,7 +54,7 @@ func SendMailToken(c *gin.Context) {
 	err = utils.SendMail(email.Email, message)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+			"message": err.Error(),
 		})
 	} else {
 		c.JSON(http.StatusOK, gin.H{
@@ -62,14 +67,14 @@ func VerifyMailCode(c *gin.Context) {
 	token := c.Param("token")
 	if token == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "token invalid",
+			"message": "token invalid",
 		})
 		return
 	}
 	err := model.VerifyMail(token)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+			"message": err.Error(),
 		})
 	} else {
 		c.JSON(http.StatusOK, gin.H{

@@ -14,27 +14,28 @@ type User struct {
 	Token    string
 }
 
-func CreateUser(username, password, email string) error {
-	searchsql := "select count(*) from users where username = ? or email = ?"
-	var count int
-	err := db.QueryRow(searchsql, username, email).Scan(&count)
-	if err != nil {
-		return err
-	} else if count != 0 {
-		return errors.New("username or email already exist")
+func CreateUser(username, password, email string) (User, error) {
+	searchsql := "select username, email from users where username = ? or email = ?"
+	user := User{}
+	err := db.QueryRow(searchsql, username, email).Scan(&user.Name, &user.Email)
+	if err != sql.ErrNoRows {
+		return user, nil
+	}
+	if err != nil && err != sql.ErrNoRows {
+		return user, err
 	}
 	createTime := utils.GetCurrentTime()
 	token, generate_err := utils.GenerateToken()
 	if generate_err != nil {
-		return generate_err
+		return user, generate_err
 	}
 	passwordHash := utils.HashPassword(password, token)
 	insertSql := "insert into users(username, password, email, create_time, token) values(?, ?, ?, ?, ?)"
 	_, err = db.Exec(insertSql, username, passwordHash, email, createTime, token)
 	if err != nil {
-		return err
+		return user, err
 	}
-	return nil
+	return user, nil
 }
 
 func UpdateUserPassword(username, password string) error {
@@ -71,34 +72,36 @@ func DeleteUser(username string) error {
 }
 
 func QueryUserInfo(username string) (User, error) {
-	querySql := "select id, email, password, token from users where username = ?"
+	querySql := "select id, username, email, password, token from users where username = ?"
 	user := User{}
-	err := db.QueryRow(querySql, username).Scan(&user.Id, &user.Email, &user.Password, &user.Token)
+	err := db.QueryRow(querySql, username).Scan(&user.Id, &user.Name, &user.Email, &user.Password, &user.Token)
 	if err == sql.ErrNoRows {
-		return user, errors.New("user is not exist")
-	} else if err != nil {
+		return user, nil
+	}
+	if err != nil {
 		return user, err
 	}
 	return user, nil
 }
 
-func RecordSendMail(email, token string) error {
+func RecordSendMail(email, token string) (bool, error) {
 	querySql := "select id, is_verify_email from users where email = ?"
 	var user_id int
 	var is_verify_email bool
 	err := db.QueryRow(querySql, email).Scan(&user_id, &is_verify_email)
 	if err != nil {
-		return errors.New("email is not exist")
-	} else if is_verify_email == true {
-		return errors.New("email is verified")
+		return is_verify_email, err
+	}
+	if is_verify_email != false {
+		return is_verify_email, err
 	}
 	insertSql := "insert into mail(user_id, email, verification_token, create_time) values(?, ?, ?, ?)"
 	create_time := utils.GetCurrentTime()
 	_, err = db.Exec(insertSql, user_id, email, token, create_time)
 	if err != nil {
-		return err
+		return is_verify_email, err
 	}
-	return nil
+	return is_verify_email, err
 }
 
 func VerifyMail(token string) error {

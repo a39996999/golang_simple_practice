@@ -19,36 +19,63 @@ func CreateUser(c *gin.Context) {
 	User := User{}
 	if err := c.ShouldBindJSON(&User); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
+			"message": err.Error(),
 		})
 		return
 	}
 	if User.Name == "" || User.Password == "" || User.Email == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid input",
+			"message": "invalid input",
 		})
 		return
 	}
 	checkEmailValidate, emailError := utils.VerifyEmailFormat(User.Email)
 	if emailError != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": emailError,
+			"message": emailError.Error(),
 		})
 	} else if checkEmailValidate == false {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Input wrong email format",
+			"message": "Input wrong email format",
 		})
 	} else {
-		err := model.CreateUser(User.Name, User.Password, User.Email)
+		user, err := model.CreateUser(User.Name, User.Password, User.Email)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
+				"message": err.Error(),
+			})
+		} else if user.Email != "" {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"message": "Email is exist",
+			})
+		} else if user.Name != "" {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"message": "Name is exist",
 			})
 		} else {
 			c.JSON(http.StatusOK, gin.H{
-				"status": "create user sucessfully",
+				"message": "create user sucessfully",
 			})
 		}
+	}
+}
+func CheckUserExist(c *gin.Context) {
+	username := c.Param("username")
+	user, err := model.QueryUserInfo(username)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err.Error(),
+		})
+		return
+	}
+	if user.Name != "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Username is exist",
+		})
+	} else {
+		c.JSON(http.StatusOK, gin.H{
+			"message": "Username can used",
+		})
 	}
 }
 
@@ -56,22 +83,22 @@ func UpdateUserPassword(c *gin.Context) {
 	User := User{}
 	if err := c.ShouldBindJSON(&User); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
+			"message": err.Error(),
 		})
 	}
 	if User.Name == "" || User.Password == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid input",
+			"message": "invalid input",
 		})
 	}
 	err := model.UpdateUserPassword(User.Name, User.Password)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
+			"message": err.Error(),
 		})
 	} else {
 		c.JSON(http.StatusOK, gin.H{
-			"status": "update user password sucessfully",
+			"message": "update user password sucessfully",
 		})
 	}
 }
@@ -80,22 +107,22 @@ func DeleteUser(c *gin.Context) {
 	User := User{}
 	if err := c.ShouldBindJSON(&User); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
+			"message": err.Error(),
 		})
 	}
 	if User.Name == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid input",
+			"message": "invalid input",
 		})
 	}
 	err := model.DeleteUser(User.Name)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+			"message": err.Error(),
 		})
 	}
 	c.JSON(http.StatusOK, gin.H{
-		"status": "delete user sucessfully",
+		"message": "delete user sucessfully",
 	})
 }
 
@@ -103,14 +130,20 @@ func UserLogin(c *gin.Context) {
 	User := User{}
 	if err := c.ShouldBindJSON(&User); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
+			"message": err.Error(),
 		})
 		return
 	}
 	userinfo, err := model.QueryUserInfo(User.Name)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+			"message": err.Error(),
+		})
+		return
+	}
+	if userinfo.Name == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "User is not exist",
 		})
 		return
 	}
@@ -119,7 +152,7 @@ func UserLogin(c *gin.Context) {
 		token, err := middleware.GenerateJWT(userinfo.Id, userinfo.Email)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
+				"message": err.Error(),
 			})
 		} else {
 			c.JSON(http.StatusOK, gin.H{
@@ -128,7 +161,7 @@ func UserLogin(c *gin.Context) {
 		}
 	} else {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "input wrong password",
+			"message": "input wrong password",
 		})
 	}
 }
