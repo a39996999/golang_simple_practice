@@ -147,9 +147,16 @@ func UserLogin(c *gin.Context) {
 		})
 		return
 	}
+
 	userPasswordHash := utils.HashPassword(User.Password, userinfo.Token)
 	if userinfo.Password == userPasswordHash {
-		token, err := middleware.GenerateJWT(userinfo.Id, userinfo.Email)
+		if userinfo.IsVerify == false {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"message": "Email is not verified",
+			})
+			return
+		}
+		token, err := middleware.GenerateJWT(userinfo.Id, userinfo.Name, userinfo.Email)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"message": err.Error(),

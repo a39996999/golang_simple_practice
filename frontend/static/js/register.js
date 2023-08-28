@@ -10,11 +10,6 @@ class User {
 }
 var user = new User;
 
-var usernameRegex = /^[a-zA-Z0-9_]{1,10}$/;
-var passwordRegex = /^[a-zA-Z0-9_!@#$%^&*]{8,}$/;
-var emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-
-
 window.registerControl = function() {
     var inputText = inputBox.value;
     var registerStatus =statusList[statusList.length-1]; 
@@ -34,7 +29,7 @@ window.registerControl = function() {
 function createUsername(content) {
     createMessage(content)  
     if (!usernameRegex.test(content)) {
-        createMessage(": Your mom feel sad because your username invalid");
+        createMessage(": Your username invalid");
         return;
     }
     fetch(userUrl + "query/"+content, {method: "GET"})
@@ -65,7 +60,7 @@ function createUsername(content) {
 
 function createPassword(contnet) {
     if (!usernameRegex.test(contnet)) {
-        createMessage(": Your mom feel sad because your username invalid");
+        createMessage(": Your username invalid");
         return; 
     }
     user.password = contnet 
@@ -92,7 +87,7 @@ function verifyPassword(content) {
 
 function createEmail(content) {
     if (!emailRegex.test(content)) {
-        createMessage(": Your mom feel sad because your email invalid");
+        createMessage(": Your email invalid");
         return; 
     }
     user.email = content
@@ -127,7 +122,7 @@ async function sendMail(content) {
     }
     var requestOption = {
         method: "POST",
-        Headers: {
+        headers: {
             "Content-type": "application/json",
         },
         body: JSON.stringify(data)
@@ -149,7 +144,7 @@ async function createUser() {
     }
     var requestOption = {
         method: "POST", 
-        Headers: {
+        headers: {
             "Content-type": "application/json",
         },
         body: JSON.stringify(data)

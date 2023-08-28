@@ -11,6 +11,7 @@ type User struct {
 	Name     string
 	Password string
 	Email    string
+	IsVerify bool
 	Token    string
 }
 
@@ -72,9 +73,9 @@ func DeleteUser(username string) error {
 }
 
 func QueryUserInfo(username string) (User, error) {
-	querySql := "select id, username, email, password, token from users where username = ?"
+	querySql := "select id, username, email, is_verify_email, password, token from users where username = ?"
 	user := User{}
-	err := db.QueryRow(querySql, username).Scan(&user.Id, &user.Name, &user.Email, &user.Password, &user.Token)
+	err := db.QueryRow(querySql, username).Scan(&user.Id, &user.Name, &user.Email, &user.IsVerify, &user.Password, &user.Token)
 	if err == sql.ErrNoRows {
 		return user, nil
 	}

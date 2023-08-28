@@ -3,10 +3,30 @@ body{
     padding: 0; 
     margin: 0;
     font-size: 25px;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif; 
+}
+
+.header {
+    color: rgba(232, 223, 223, 0.942);
+    display: flex;
+    align-items: center;
+    justify-content: right;
+    height: 50px; 
+    background-color: rgb(28, 28, 28);
+    box-shadow: 0px 5px 10px rgba(208, 203, 203, 0.1);
+}
+.time {
+    margin-right: 20px;
+}
+.username {
+    margin-right: 30px;
 }
 
 .footer {
-    position: fixed;
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     bottom: 0;
     left: 0;
     width: 100%;
@@ -16,7 +36,7 @@ body{
     box-shadow: 0px -2px 5px rgba(0, 0, 0, 0.1);
 }
 .input{ 
-    width: 100%;
+    width: 95%;
     height: 60%;
     font-size: 25px;
     padding: 8px;
@@ -25,8 +45,10 @@ body{
 }
 
 .message-bar {
-    color: aliceblue;
-    font-size: 30px;
+    color: rgb(205, 211, 216);
     margin-left: 10px;
     padding: 10px;
+}
+.message {
+    margin-top: 10px;
 }

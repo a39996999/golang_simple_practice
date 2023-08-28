@@ -20,16 +20,21 @@ func JWTVerifyToken() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		_, err := ParseToken(tokenString)
+		tokenClaims, err := ParseToken(tokenString)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"message": err.Error(),
 			})
 			c.Abort()
 			return
+		} else {
+			c.JSON(http.StatusOK, gin.H{
+				"username": tokenClaims["username"],
+			})
 		}
 	}
 }
+
 func ParseToken(tokenString string) (jwt.MapClaims, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		jwt_key := []byte(os.Getenv("jwt_key"))
@@ -45,10 +50,11 @@ func ParseToken(tokenString string) (jwt.MapClaims, error) {
 	}
 }
 
-func GenerateJWT(user_id int, email string) (string, error) {
+func GenerateJWT(user_id int, username string, email string) (string, error) {
 	token := jwt.New(jwt.SigningMethodHS256)
 	claims := token.Claims.(jwt.MapClaims)
 	claims["user_id"] = user_id
+	claims["username"] = username
 	claims["email"] = email
 	claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
 	jwt_key := []byte(os.Getenv("jwt_key"))
