@@ -33,3 +33,18 @@ func CreateMailTable(db *sql.DB) {
 		panic(err)
 	}
 }
+
+func CreateRoomTable(db *sql.DB) {
+	createTableSql := `create table if not exists room(
+		id int auto_increment primary key,
+		name varchar(32),
+		owner_id int,
+		description text,
+		create_time datetime,
+		foreign key (owner_id) references users(id)
+	)`
+	_, err := db.Exec(createTableSql)
+	if err != nil {
+		panic(err)
+	}
+}

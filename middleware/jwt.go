@@ -20,17 +20,13 @@ func JWTVerifyToken() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		tokenClaims, err := ParseToken(tokenString)
+		_, err := ParseToken(tokenString)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"message": err.Error(),
 			})
 			c.Abort()
 			return
-		} else {
-			c.JSON(http.StatusOK, gin.H{
-				"username": tokenClaims["username"],
-			})
 		}
 	}
 }

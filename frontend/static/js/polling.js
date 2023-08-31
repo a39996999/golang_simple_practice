@@ -10,9 +10,11 @@ window.checkUserAlive = async function () {
         const result = await fetch(userUrl + "useralive", requestOption);
         const resultData = await result.json();
         if (result.status == 200) {
-            user.name = resultData.username;
+            user.name = resultData.message.username;
+            userStatus = "online";
             return true;
         } else {
+            userStatus = "free";
             return false;
         } 
     }
@@ -48,5 +50,5 @@ window.deleteCookie = function(name) {
     document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 }
 
-setInterval(checkUserAlive, 60000);
+setInterval(checkUserAlive, 600000);
 setInterval(updateCurrentTime, 100);

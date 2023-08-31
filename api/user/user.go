@@ -10,6 +10,7 @@ import (
 )
 
 type User struct {
+	User_id  int
 	Name     string `json:"Username"`
 	Password string `json:"Password"`
 	Email    string `json:"Email"`
@@ -171,4 +172,25 @@ func UserLogin(c *gin.Context) {
 			"message": "input wrong password",
 		})
 	}
+}
+
+func UserStatus(c *gin.Context) {
+	token := c.GetHeader("token")
+	tokenClaimes, err := middleware.ParseToken(token)
+	if err != nil {
+		c.JSON(http.StatusBadGateway, gin.H{
+			"message": err.Error(),
+		})
+	}
+	user := User{}
+	user.User_id = int(tokenClaimes["user_id"].(float64))
+	user.Name = tokenClaimes["username"].(string)
+	user.Email = tokenClaimes["email"].(string)
+	c.JSON(http.StatusOK, gin.H{
+		"message": gin.H{
+			"user_id":  user.User_id,
+			"username": user.Name,
+			"email":    user.Email,
+		},
+	})
 }

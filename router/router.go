@@ -2,6 +2,7 @@ package router
 
 import (
 	"chatroom/api/mail"
+	"chatroom/api/room"
 	"chatroom/api/testing"
 	"chatroom/api/user"
 	"chatroom/middleware"
@@ -24,7 +25,19 @@ func InitRouter() *gin.Engine {
 		userapiGruop.POST("/sendmail", mail.SendMailToken)
 		userapiGruop.GET("/verifymail/:token", mail.VerifyMailCode)
 		userapiGruop.GET("/query/:username", user.CheckUserExist)
-		userapiGruop.GET("/useralive", middleware.JWTVerifyToken())
+		userapiGruop.Use(middleware.JWTVerifyToken())
+		{
+			userapiGruop.GET("/useralive", user.UserStatus)
+		}
+	}
+	roomapiGroup := server.Group("/v1/room")
+	{
+		roomapiGroup.Use(middleware.JWTVerifyToken())
+		{
+			roomapiGroup.POST("/create", room.CreateRoom)
+			roomapiGroup.POST("/delete", room.DeleteRoom)
+			roomapiGroup.GET("/getroomlist", room.GetAllRoom)
+		}
 	}
 	apiTestGroup := server.Group("test")
 	{

@@ -1,5 +1,8 @@
-window.userUrl = "http://127.0.0.1:8080/v1/user/"; 
+window.hostUrl = "http://127.0.0.1:8080/"
+window.userUrl = hostUrl + "v1/user/";
+window.roomUrl = hostUrl + "v1/room/";
 window.inputBox = document.querySelector(".input");
+window.footer = document.querySelector(".footer")
 window.usernameTag = document.querySelector(".username");
 window.messageList = document.querySelector(".message-bar");
 window.statusList = [];
@@ -14,7 +17,7 @@ const commadHandlers = {
     },
     [""]: () => {
     },
-    ["/break"]: () => {
+    ["/home"]: () => {
         homeInit(); 
     },
     ["/logout"]: () => {
@@ -22,7 +25,7 @@ const commadHandlers = {
     }
 }
 
-window.usernameRegex = /^[a-zA-Z0-9_]{1,10}$/;
+window.usernameRegex = /^[a-zA-Z0-9_]{1,20}$/;
 window.passwordRegex = /^[a-zA-Z0-9_!@#$%^&*]+$/;
 window.emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
@@ -43,16 +46,16 @@ function mainControl() {
     var inputText = inputBox.value;
     if (commadHandlers.hasOwnProperty(inputText)) {
         commadHandlers[inputText]();
-       
-    } 
-    if (userStatus == "free") {
-       homeControl(); 
+    } else if (userStatus == "free") {
+        homeControl(); 
     } else if (userStatus == "register") {
         registerControl();
     } else if (userStatus == "login") {
         loginControl();
+    } else if (userStatus == "online") {
+        onlineControl();
     } 
-    inputBox.value = "";
+    inputBox.value = "" 
 }
 
 function homeControl() {
@@ -93,18 +96,26 @@ window.loginInit = function(){
     userStatus = "online";
     statusList.length = 0;
     inputBox.placeholder = `Welcome ${user.name}`;
+    inputBox.type = "text";
     usernameTag.textContent = `User_${user.name}`;
     clearAllMessage();
     createMessage(": Welcome back")
 }
 
 window.homeInit = function() {
-    userStatus = "free";
     statusList.length = 0;
     inputBox.type = "text";
-    inputBox.placeholder = "Say Hi";
     clearAllMessage();
-    createMessage(": /login or /register, choose one...")
+
+    if (userStatus == "online") {
+        inputBox.placeholder = `Welcome ${user.name}`
+        createMessage(": Welcome back") 
+    } else {
+        userStatus = "free";
+
+        createMessage(": /login or /register, choose one...")
+        inputBox.placeholder = "Say Hi"; 
+    }
 }
 
 function logout() {

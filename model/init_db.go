@@ -20,4 +20,5 @@ func InitDB() {
 	}
 	migrate.CreateUserTable(db)
 	migrate.CreateMailTable(db)
+	migrate.CreateRoomTable(db)
 }
